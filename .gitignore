@@ -1,0 +1,7 @@
+pyAudioAnalysis
+*.zip
+venv
+.idea
+*.wav
+result*.txt
+.DS_Store
