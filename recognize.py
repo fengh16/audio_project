@@ -18,7 +18,7 @@ def get_mode(arr):
             return k
 
 
-def get_ans(audio_file, save_file='ans.json', person_num=2, silence_len_ms=300, silence_threshold=-70):
+def get_ans(audio_file, save_file='ans.json', person_num=2, silence_len_ms=300, silence_threshold=-70, lang=baidu_aip.Language.CHINESE):
     sound = AudioSegment.from_file(audio_file, format='wav')
     print('totally' + str(len(sound)) + 'ms')
     chunks = split_on_silence(sound, min_silence_len=silence_len_ms, silence_thresh=silence_threshold)
@@ -44,7 +44,7 @@ def get_ans(audio_file, save_file='ans.json', person_num=2, silence_len_ms=300, 
     print("BAIDU:")
     selected_chunks = []
     for t in range(len(chunks)):
-        ans = baidu_aip.get_wav_ans(get_name(t), 'ch')
+        ans = baidu_aip.get_wav_ans(get_name(t), lang)
         if 'result' in ans:
             print('\t' + str(t) + '\t' + '\t'.join(ans['result']))
             selected_chunks.append({
@@ -76,4 +76,4 @@ def get_ans(audio_file, save_file='ans.json', person_num=2, silence_len_ms=300, 
 
 
 if __name__ == '__main__':
-    get_ans('2.wav', save_file='ans.json', person_num=2, silence_len_ms=300, silence_threshold=-70)
+    get_ans('2.wav', save_file='ans.json', person_num=2, silence_len_ms=300, silence_threshold=-70, lang=baidu_aip.Language.CHINESE)
