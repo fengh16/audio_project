@@ -16,6 +16,7 @@ def get_file_content(filePath):
 
 last_time = 0
 
+
 # 识别本地文件
 def get_wav_ans(name, lang='eng'):
     global last_time

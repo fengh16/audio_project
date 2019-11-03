@@ -5,7 +5,6 @@ import baidu_aip
 import pyAudioAnalysis.audioSegmentation as au
 import json
 
-audio_file='2.wav'
 
 def get_name(count):
     return str(count) + "temp.wav"
@@ -19,10 +18,10 @@ def get_mode(arr):
             return k
 
 
-if __name__ == '__main__':
+def get_ans(audio_file, save_file='ans.json', person_num=2, silence_len_ms=300, silence_threshold=-70):
     sound = AudioSegment.from_file(audio_file, format='wav')
     print('totally' + str(len(sound)) + 'ms')
-    chunks = split_on_silence(sound, min_silence_len=300, silence_thresh=-70)
+    chunks = split_on_silence(sound, min_silence_len=silence_len_ms, silence_thresh=silence_threshold)
     for c in chunks:
         print(c.duration_seconds)
     chunks = [i for i in chunks if i.duration_seconds > 0.5]
@@ -45,7 +44,7 @@ if __name__ == '__main__':
     print("BAIDU:")
     selected_chunks = []
     for t in range(len(chunks)):
-        ans = baidu_aip.get_wav_ans(get_name(t))
+        ans = baidu_aip.get_wav_ans(get_name(t), 'ch')
         if 'result' in ans:
             print('\t' + str(t) + '\t' + '\t'.join(ans['result']))
             selected_chunks.append({
@@ -67,9 +66,14 @@ if __name__ == '__main__':
         print('length after added silent: ', total.duration_seconds)
     start_list.append(int(total.duration_seconds + 0.5) * 2)
     total.export(get_name('linked'), 'wav')
-    recognize_ans = list(au.speakerDiarization(get_name('linked'), 2, mt_size=0.5, mt_step=0.5, st_win=0.1))
+    recognize_ans = list(au.speakerDiarization(get_name('linked'), person_num, mt_size=0.5, mt_step=0.5, st_win=0.1))
     for i in range(len(start_list) - 1):
         selected_chunks[i]['person'] = str(int(get_mode(recognize_ans[start_list[i]: start_list[i + 1]])))
-    with open('ans.json', 'w') as f:
-        json.dump(selected_chunks, f)
-    print(selected_chunks)
+    if save_file:
+        with open(save_file, 'w') as f:
+            json.dump(selected_chunks, f, indent=2)
+    return selected_chunks
+
+
+if __name__ == '__main__':
+    get_ans('2.wav', save_file='ans.json', person_num=2, silence_len_ms=300, silence_threshold=-70)
