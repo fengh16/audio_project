@@ -16,7 +16,7 @@ SOUND_SPEED = 340.0
 
 MIC_DISTANCE_4 = 0.081
 MAX_TDOA_4 = MIC_DISTANCE_4 / float(SOUND_SPEED)
-duration = 20
+duration = 40
 chunks = round(duration * (1000 / chunk_duration))
 
 
@@ -165,7 +165,7 @@ def real_time(device_index):
 if __name__ == '__main__':
     index = get_seeed_device_index()
     # offline--------------
-    # record_thread(index, 'temp', 4, duration=duration)
-    analysis('temp.wav')
+    record_thread(index, 'temp', 4, duration=duration)
+    # analysis('temp.wav')
     # ----------
     # real_time(index)

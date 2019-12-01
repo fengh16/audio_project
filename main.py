@@ -13,10 +13,15 @@ angles_people = []  # the angle of everyone
 angles_raw_data_people = []  # the raw data of angles of everyone
 people_index_record = {}
 
+keep_splited_file = False
+
 
 def angle_similar(a, b):
     if a is not None and b is not None:
-        return -angle_diff_threshold < a - b < angle_diff_threshold
+        diff = abs(a - b)
+        while diff >= 180:
+            diff -= 360
+        return abs(diff) < angle_diff_threshold
     return False
 
 
@@ -24,7 +29,8 @@ def get_text_ans(data):
     temp_file_name = str(time.time()) + 'a.wav'
     downsampleWav(data, temp_file_name)
     ans = get_wav_ans(temp_file_name, lang='ch')
-    os.remove(temp_file_name)
+    if not keep_splited_file:
+        os.remove(temp_file_name)
     return ans
 
 
@@ -77,7 +83,7 @@ def get_angle_index(angle):
         if angle_similar(angles_people[j], angle):
             found_similar = True
             angles_raw_data_people[j].append(angle)
-            angles_people[j] = sum(angles_raw_data_people[j]) / len(angles_raw_data_people[j])
+            # angles_people[j] = sum(angles_raw_data_people[j]) / len(angles_raw_data_people[j])
             found_index = j
             break
     if not found_similar:
@@ -132,7 +138,7 @@ def analysis(filename):
             angle = None
         ans_list.append({
             'person_index': None,
-            # 'angle': angle,
+            'angle': angle,
             'data': chunk[1, :],
             'text': '',
             'vol': vol,
@@ -187,15 +193,18 @@ def analysis(filename):
             connect_data(ans_list[i - 1], ans_list[i])
             ans_list.pop(i)
             len_ans_list -= 1
-    # print(ans_list)
+    # print([[a['angle'], a['person_index']] for a in ans_list])
     print("===============")
     for ans in ans_list:
-        ans['text'] = concat_str(get_text_ans(ans['data'])['result'])
-        print('用户%d说：%s' % (get_new_index(ans['person_index']), ans['text']))
+        try:
+            ans['text'] = concat_str(get_text_ans(ans['data'])['result'])
+            print('Talker %d: %s' % (get_new_index(ans['person_index']), ans['text']))
+        except:
+            print("Talker %d: [Error] Baidu API not return the result of voice recognition" % (get_new_index(ans['person_index'])))
 
 
 if __name__ == '__main__':
-    filename = input('Please input the name of source file: ')
+    filename = input('Please input the name of source file: (Directly press ENTER to use temp.wav) ')
     filename = filename.strip()
     if not filename:
         filename = 'temp.wav'
