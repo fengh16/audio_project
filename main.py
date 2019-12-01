@@ -11,15 +11,6 @@ len_threshold = 3
 # global variables
 angles_people = []  # the angle of everyone
 angles_raw_data_people = []  # the raw data of angles of everyone
-data_people = []  # the files of everyone
-last_data = None
-prev_last_data = None
-last_angle = None
-prev_last_angle = None
-last_angle_index = None
-prev_last_angle_index = None
-last_used = True
-prev_last_used = True
 
 
 def angle_similar(a, b):
@@ -104,8 +95,7 @@ def connect_data(target_earlier, source_later):
 
 
 def analysis(filename):
-    global angles_people, angles_raw_data_people, data_people, last_data, prev_last_data, last_angle, prev_last_angle,\
-        last_angle_index, prev_last_angle_index, last_used, prev_last_used
+    global angles_people, angles_raw_data_people
 
     fs, data = read(filename)
     data = data.T
