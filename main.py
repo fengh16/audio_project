@@ -1,7 +1,8 @@
-from DoA import *
-import wave, audioop
+import wave, audioop, os, time
+from DoA import FRAME_SIZE, get_volume, get_direction_array
+from scipy.io.wavfile import read
 from baidu_aip import get_wav_ans
-import time
+import numpy as np
 
 sampleRate = 44100
 vol_least_threshold = 2
@@ -13,7 +14,7 @@ angles_people = []  # the angle of everyone
 angles_raw_data_people = []  # the raw data of angles of everyone
 people_index_record = {}
 
-keep_splited_file = False
+from config import keep_splited_file
 
 
 def angle_similar(a, b):
@@ -130,8 +131,8 @@ def analysis(filename):
 
     ans_list = []
 
-    for i in range(chunks):
-        chunk = data[:, i * FRAME_SIZE:(i + 1) * FRAME_SIZE]
+    for i in range(len(data[0]) // FRAME_SIZE):
+        chunk = data[:, i * FRAME_SIZE: (i + 1) * FRAME_SIZE]
         vol = get_volume(chunk)
         angle = get_direction_array(chunk)
         if vol < vol_least_threshold:

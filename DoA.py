@@ -1,10 +1,9 @@
+from config import duration
 import pyaudio
 import array
 import wave
 import os
 import datetime
-from scipy.io.wavfile import read
-import matplotlib.pyplot as plt
 import numpy as np
 from gcc_phat import gcc_phat
 
@@ -16,7 +15,7 @@ SOUND_SPEED = 340.0
 
 MIC_DISTANCE_4 = 0.081
 MAX_TDOA_4 = MIC_DISTANCE_4 / float(SOUND_SPEED)
-duration = 40
+
 chunks = round(duration * (1000 / chunk_duration))
 
 
@@ -114,33 +113,6 @@ def get_volume_raw(raw_data):
     return np.sqrt((np.sum(arr * arr))) / len(arr)
 
 
-def analysis(filename):
-    fs, data = read(filename)
-    data = data.T
-    t = np.linspace(0, duration, len(data[0]))
-    fig, axs = plt.subplots(3, 1, sharex='col', figsize=(16, 9))
-    axs[0].plot(t, data[0])
-
-    vols_t = []
-    vols = []
-    angles_t = []
-    angles = []
-    for i in range(chunks):
-        chunk = data[:, i * FRAME_SIZE:(i + 1) * FRAME_SIZE]
-        vol = get_volume(chunk)
-        time = i * FRAME_SIZE / sampleRate
-        vols_t.append(time)
-        vols.append(vol)
-        angle = get_direction_array(chunk)
-        angles.append(angle)
-        angles_t.append(time)
-    axs[1].plot(vols_t, vols)
-    axs[2].grid(True)
-    axs[2].set_ylim([0, 360])
-    axs[2].scatter(angles_t, angles)
-    plt.savefig('doa.png')
-
-
 def real_time(device_index):
     p = pyaudio.PyAudio()
     stream = p.open(format=pyaudio.paInt16,
@@ -166,6 +138,5 @@ if __name__ == '__main__':
     index = get_seeed_device_index()
     # offline--------------
     record_thread(index, 'temp', 4, duration=duration)
-    # analysis('temp.wav')
     # ----------
     # real_time(index)
