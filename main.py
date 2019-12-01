@@ -117,6 +117,7 @@ def get_new_index(index):
 
 def analysis(filename):
     global angles_people, angles_raw_data_people
+    print("Loading...")
 
     fs, data = read(filename)
     data = data.T
@@ -187,10 +188,15 @@ def analysis(filename):
             ans_list.pop(i)
             len_ans_list -= 1
     # print(ans_list)
+    print("===============")
     for ans in ans_list:
         ans['text'] = concat_str(get_text_ans(ans['data'])['result'])
         print('用户%d说：%s' % (get_new_index(ans['person_index']), ans['text']))
 
 
 if __name__ == '__main__':
-    analysis('temp.wav')
+    filename = input('Please input the name of source file: ')
+    filename = filename.strip()
+    if not filename:
+        filename = 'temp.wav'
+    analysis(filename)
