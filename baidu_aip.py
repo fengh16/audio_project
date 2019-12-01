@@ -34,5 +34,6 @@ def get_wav_ans(name, dev_pid=0, lang='eng'):
     last_time = time.time()
     return ans
 
+
 if __name__ == '__main__':
-    print(get_wav_ans('2.wav'))
+    print(get_wav_ans('2.wav', lang='ch'))
