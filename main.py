@@ -11,6 +11,7 @@ len_threshold = 3
 # global variables
 angles_people = []  # the angle of everyone
 angles_raw_data_people = []  # the raw data of angles of everyone
+people_index_record = {}
 
 
 def angle_similar(a, b):
@@ -83,7 +84,6 @@ def get_angle_index(angle):
         found_index = len_people
         angles_people.append(angle)
         angles_raw_data_people.append([angle])
-        data_people.append([])
     return found_index
 
 
@@ -92,6 +92,27 @@ def connect_data(target_earlier, source_later):
     target_earlier['data'] = np.append(target_earlier['data'], source_later['data'])
     target_earlier['vol'] = (target_earlier['vol'] * target_earlier['len'] + source_later['vol'] * source_later['len']
                              ) / (target_earlier['len'] + source_later['len'])
+    # print("%d-%d, %d-%d" % (target_earlier['start'], target_earlier['end'], source_later['start'], source_later['end']))
+    # if target_earlier['end'] >= source_later['start']:
+    #     print("ERROR")
+    target_earlier['end'] = source_later['end']
+
+
+# Concat string in an array
+def concat_str(l):
+    if len(l) == 0:
+        return ''
+    ans = l[0]
+    for i in range(1, len(l)):
+        ans += '；' + l[i]
+    return ans
+
+
+def get_new_index(index):
+    global people_index_record
+    if index not in people_index_record:
+        people_index_record[index] = len(people_index_record)
+    return people_index_record[index] + 1
 
 
 def analysis(filename):
@@ -114,7 +135,9 @@ def analysis(filename):
             'data': chunk[1, :],
             'text': '',
             'vol': vol,
-            'len': 1
+            'len': 1,
+            'start': i,
+            'end': i
         })
         if angle is not None:
             ans_list[-1]['person_index'] = get_angle_index(angle)
@@ -128,7 +151,9 @@ def analysis(filename):
             len_ans_list -= 1
     # Link all same_person_data
     for i in range(len_ans_list - 1, 0, -1):
-        if ans_list[i]['person_index'] == ans_list[i - 1]['person_index']:
+        if ans_list[i]['person_index'] is None:
+            continue
+        elif ans_list[i]['person_index'] == ans_list[i - 1]['person_index']:
             connect_data(ans_list[i - 1], ans_list[i])
             ans_list.pop(i)
             len_ans_list -= 1
@@ -139,16 +164,20 @@ def analysis(filename):
             len_ans_list -= 1
     # Attach spaces to voice data
     for i in range(len_ans_list - 1, 0, -1):
+        need_pop = False
         if ans_list[i]['person_index'] is None and ans_list[i - 1]['person_index'] is not None:
             connect_data(ans_list[i - 1], ans_list[i])
+            need_pop = True
+        if i + 1 < len_ans_list and ans_list[i + 1]['person_index'] is not None and ans_list[i]['person_index'] is None:
+            connect_data(ans_list[i], ans_list[i + 1])
+            ans_list[i]['person_index'] = ans_list[i + 1]['person_index']
+            need_pop = True
+        if need_pop:
             ans_list.pop(i)
             len_ans_list -= 1
-        elif ans_list[i]['person_index'] is not None and ans_list[i - 1]['person_index'] is None:
-            connect_data(ans_list[i - 1], ans_list[i])
-            ans_list[i - 1]['person_index'] = ans_list[i]['person_index']
     # Remove too-short-length data
     for i in range(len_ans_list - 1, -1, -1):
-        if ans_list[i]['len'] < len_threshold:
+        if ans_list[i]['len'] < len_threshold or ans_list[i]['person_index'] is None:
             ans_list.pop(i)
             len_ans_list -= 1
     # Link all same_person_data again
@@ -157,9 +186,10 @@ def analysis(filename):
             connect_data(ans_list[i - 1], ans_list[i])
             ans_list.pop(i)
             len_ans_list -= 1
-    print(ans_list)
+    # print(ans_list)
     for ans in ans_list:
-        print('用户%d说%s' % (ans['person_index'], get_text_ans(ans['data'])))
+        ans['text'] = concat_str(get_text_ans(ans['data'])['result'])
+        print('用户%d说：%s' % (get_new_index(ans['person_index']), ans['text']))
 
 
 if __name__ == '__main__':
